@@ -48,7 +48,7 @@ void json_uri::update(const std::string &uri)
 
 		// if it is an URN take it as it is
 		if (location.find("urn:") == 0) {
-			urn_ = location;
+			urn_ = std::move(location);
 
 			// and clear URL members
 			scheme_ = "";
@@ -81,7 +81,7 @@ void json_uri::update(const std::string &uri)
 				throw std::invalid_argument("Cannot add a path (" + path + ") to an URN URI (" + urn_ + ")");
 
 			if (path[0] == '/') // if it starts with a / it is root-path
-				path_ = path;
+				path_ = std::move(path);
 			else if (pos == 0) { // the URL contained only a path and the current path has no / at the end, strip last element until / and append
 				auto last_slash = path_.rfind('/');
 				path_ = path_.substr(0, last_slash) + '/' + path;
@@ -96,7 +96,7 @@ void json_uri::update(const std::string &uri)
 	if (pointer[0] == '/')
 		pointer_ = json::json_pointer(pointer);
 	else
-		identifier_ = pointer;
+		identifier_ = std::move(pointer);
 }
 
 std::string json_uri::location() const

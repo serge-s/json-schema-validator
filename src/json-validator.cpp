@@ -202,7 +202,7 @@ public:
 	{
 		auto &file = get_or_create_file(uri.location());
 		auto new_uri = uri.append(key);
-		auto fragment = new_uri.pointer();
+		auto &fragment = new_uri.pointer();
 
 		// is there a reference looking for this unknown-keyword, which is thus no longer a unknown keyword but a schema
 		auto unresolved = file.unresolved.find(fragment.to_string());
@@ -723,15 +723,15 @@ public:
 
 				if (attr_then != sch.end()) {
 					then_ = schema::make(attr_then.value(), root, {"then"}, uris);
-					sch.erase(attr_then);
+					sch.erase(std::move(attr_then));
 				}
 
 				if (attr_else != sch.end()) {
 					else_ = schema::make(attr_else.value(), root, {"else"}, uris);
-					sch.erase(attr_else);
+					sch.erase(std::move(attr_else));
 				}
 			}
-			sch.erase(attr);
+			sch.erase(std::move(attr));
 		}
 	}
 };
@@ -876,7 +876,7 @@ public:
 				throw std::invalid_argument{"a format checker was not provided but a format keyword for this string is present: " + format_.second};
 
 			format_ = {true, attr.value().get<std::string>()};
-			sch.erase(attr);
+			sch.erase(std::move(attr));
 		}
 	}
 };
@@ -1297,7 +1297,7 @@ public:
 				auto attr_add = sch.find("additionalItems");
 				if (attr_add != sch.end()) {
 					additionalItems_ = schema::make(attr_add.value(), root, {"additionalItems"}, uris);
-					sch.erase(attr_add);
+					sch.erase(std::move(attr_add));
 				}
 
 			} else if (attr.value().type() == json::value_t::object ||
@@ -1310,7 +1310,7 @@ public:
 		attr = sch.find("contains");
 		if (attr != sch.end()) {
 			contains_ = schema::make(attr.value(), root, {"contains"}, uris);
-			sch.erase(attr);
+			sch.erase(std::move(attr));
 		}
 	}
 };
@@ -1407,9 +1407,9 @@ std::shared_ptr<schema> schema::make(json &schema,
 			if (attr != schema.end()) {
 				// copy the referenced schema depending on the underlying type and modify the default value
 				if (auto new_sch = sch->make_for_default_(sch, root, uris, attr.value())) {
-					sch = new_sch;
+					sch = std::move(new_sch);
 				}
-				schema.erase(attr);
+				schema.erase(std::move(attr));
 			}
 		} else {
 			sch = std::make_shared<type_schema>(schema, root, uris);
